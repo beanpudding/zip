@@ -98,6 +98,7 @@ class zipped_iterator {
 template <class A, class... Z>
 class zipped_view {
   std::tuple<A&, Z&...> p_;
+  const std::size_t sz_;
   using Indices = std::index_sequence_for<A, Z...>;
 
  public:
@@ -134,7 +135,7 @@ class zipped_view {
   zipped_view() = delete;
   zipped_view(const zipped_view&) = default;
   zipped_view(zipped_view&&) = default;
-  zipped_view(A& a, Z&... z) : p_(a, z...) {}
+  zipped_view(A& a, Z&... z) : p_(a, z...), sz_(size_impl(Indices{})) {}
 
   iterator begin() { return begin_impl(Indices{}); }
   const_iterator begin() const { return cbegin_impl(Indices{}); }
@@ -149,7 +150,7 @@ class zipped_view {
   const_reverse_iterator crbegin() const { return rbegin(); }
   const_reverse_iterator crend() const { return rend(); }
 
-  size_type size() const { return size_impl(Indices{}); }
+  size_type size() const { return sz_; }
 
  private:
   template <std::size_t... I>
@@ -158,8 +159,7 @@ class zipped_view {
   }
   template <std::size_t... I>
   iterator end_impl(std::index_sequence<I...>) {
-    const auto sz = size();
-    return iterator(std::next(std::begin(std::get<I>(p_)), sz)...);
+    return iterator(std::next(std::begin(std::get<I>(p_)), sz_)...);
   }
   template <std::size_t... I>
   reverse_iterator rbegin_impl(std::index_sequence<I...>) {
@@ -167,8 +167,7 @@ class zipped_view {
   }
   template <std::size_t... I>
   reverse_iterator rend_impl(std::index_sequence<I...>) {
-    const auto sz = size();
-    return reverse_iterator(std::next(std::rbegin(std::get<I>(p_)), sz)...);
+    return reverse_iterator(std::next(std::rbegin(std::get<I>(p_)), sz_)...);
   }
   template <std::size_t... I>
   const_iterator cbegin_impl(std::index_sequence<I...>) const {
@@ -176,8 +175,7 @@ class zipped_view {
   }
   template <std::size_t... I>
   const_iterator cend_impl(std::index_sequence<I...>) const {
-    const auto sz = size();
-    return const_iterator(std::next(std::cbegin(std::get<I>(p_)), sz)...);
+    return const_iterator(std::next(std::cbegin(std::get<I>(p_)), sz_)...);
   }
   template <std::size_t... I>
   const_reverse_iterator crbegin_impl(std::index_sequence<I...>) const {
@@ -185,9 +183,8 @@ class zipped_view {
   }
   template <std::size_t... I>
   const_reverse_iterator crend_impl(std::index_sequence<I...>) const {
-    const auto sz = size();
     return const_reverse_iterator(
-        std::next(std::crbegin(std::get<I>(p_)), sz)...);
+        std::next(std::crbegin(std::get<I>(p_)), sz_)...);
   }
 
   template <std::size_t... I>
