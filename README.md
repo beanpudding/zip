@@ -5,6 +5,7 @@ zip函数用于将两个或多个可迭代对象作为参数，将对象中对�
 
 如果各个可迭代对象的元素个数不一致，则返回的代理容器长度与最短的对象相同。
 
+
 ## 如何使用
 包含头文件"[zip_iterables.hpp](./zip_iterables.hpp)"即可
 
@@ -15,18 +16,25 @@ zip函数用于将两个或多个可迭代对象作为参数，将对象中对�
 * gcc(9.3.0)
 * clang(7.1.0)
 
-调用方式
+### 调用方式
 ```
 auto zipped = zip([iterable, ...]);
 ```
-返回值
+### 返回值
 
-返回一个zipped_view代理容器，可迭代获取由每个参数容器元素的引用组成的tuple
+返回一个zipped_view代理容器，可通过泛型for或常规begin/end等函数方式迭代遍历获得每个参数容器元素的引用组成的tuple。
 
 zipped_view代理容器可通过begin、end等函数获取其迭代器，其迭代器支持以下操作
 * operator++
 * operator!=
 * operator*
+* ...
+***
+### 注意
+zipped_view的用途是为了遍历打包的容器。和通常的遍历原则一致，遍历过程不得添加或移除容器元素，因为这样做会使得遍历过程不可预知。
+故而使用zip函数返回的zipped_view对象也得注意
+- 遍历zipped_view对象的过程中不得添加或移除任何容器元素；
+- 任何容器新增了元素或移除了已有元素，需通过zip函数重新获取一个zipped_view对象。
 
 
 ## 示例
@@ -205,6 +213,7 @@ find(5, 7): not found
 1 array: (1) (3) (5) (7) (9)
 array(reverse): (9,8) (7,6) (5,4) (3,2)
 ```
+
 
 ## License
 Open sourced under [MIT license](http://opensource.org/licenses/MIT), the terms of which can be read here - [LICENSE](./LICENSE).
