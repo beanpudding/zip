@@ -7,29 +7,47 @@
 #pragma once
 
 #include <algorithm>   // std::min
-#include <iterator>
 #include <tuple>
 
 namespace miju {
 
 template <class AI, class... ZI>
-class zipped_iterator
-    : public std::iterator<
-          typename std::common_type<
-              typename std::iterator_traits<AI>::iterator_category,
-              typename std::iterator_traits<ZI>::iterator_category...>::type,
-          std::tuple<typename std::iterator_traits<AI>::reference,
-                     typename std::iterator_traits<ZI>::reference...>> {
+class zipped_iterator {
   std::tuple<AI, ZI...> pi_;
   using Indices = std::index_sequence_for<AI, ZI...>;
 
  public:
-  zipped_iterator(AI ai, ZI... zi) : pi_(ai, zi...) {}
-  zipped_iterator& operator++() {
-    return operator_prefix_increment_impl(Indices{});
+  using iterator_category = typename std::common_type<
+      typename std::iterator_traits<AI>::iterator_category,
+      typename std::iterator_traits<ZI>::iterator_category...>::type;
+  using value_type =
+      std::tuple<typename std::iterator_traits<AI>::reference,
+                 typename std::iterator_traits<ZI>::reference...>;
+  using difference_type = typename std::common_type<
+      typename std::iterator_traits<AI>::difference_type,
+      typename std::iterator_traits<ZI>::difference_type...>::type;
+  using pointer = value_type*;
+  using reference = value_type&;
+
+ public:
+  zipped_iterator() = default;
+  zipped_iterator(const zipped_iterator&) = default;
+  zipped_iterator(zipped_iterator&&) = default;
+  zipped_iterator(const AI& ai, const ZI&... zi) : pi_(ai, zi...) {}
+
+  zipped_iterator& operator=(const zipped_iterator& rhs) = default;
+  zipped_iterator& operator=(zipped_iterator&& rhs) = default;
+
+  zipped_iterator& operator+=(const difference_type d) {
+    return operator_prefix_increment_impl(d, Indices{});
   }
+  zipped_iterator& operator-=(const difference_type d) {
+    return operator+=(-d);
+  }
+
+  zipped_iterator& operator++() { return operator+=(1); }
   zipped_iterator operator++(int) {
-    zipped_iterator tmp = *this;
+    zipped_iterator tmp{*this};
     operator++();
     return tmp;
   }
@@ -42,15 +60,32 @@ class zipped_iterator
   typename zipped_iterator::value_type operator*() {
     return operator_dereference_impl(Indices{});
   }
-  ptrdiff_t operator-(const zipped_iterator& rhs) const {
+  difference_type operator-(const zipped_iterator& rhs) const {
     return std::distance(std::get<0>(rhs.pi_), std::get<0>(pi_));
   }
+  zipped_iterator operator+(const difference_type d) const {
+    zipped_iterator tmp{*this};
+    tmp += d;
+    return tmp;
+  }
+  zipped_iterator operator-(const difference_type d) const {
+    zipped_iterator tmp{*this};
+    tmp -= d;
+    return tmp;
+  }
+
+  bool operator<(const zipped_iterator& rhs) const { return pi_ < rhs.pi_; }
+  bool operator>(const zipped_iterator& rhs) const { return pi_ > rhs.pi_; }
+  bool operator<=(const zipped_iterator& rhs) const { return pi_ <= rhs.pi_; }
+  bool operator>=(const zipped_iterator& rhs) const { return pi_ >= rhs.pi_; }
 
  private:
   template <std::size_t... I>
   zipped_iterator& operator_prefix_increment_impl(
+      const difference_type d,
       std::index_sequence<I...>) {
-    int arr[]{(std::advance(std::get<I>(pi_), 1), 0)...};
+    int _[]{(std::advance(std::get<I>(pi_), d), 0)...};
+    (void)_;
     return *this;
   }
   template <std::size_t... I>
@@ -66,22 +101,39 @@ class zipped_view {
   using Indices = std::index_sequence_for<A, Z...>;
 
  public:
-  using iterator = zipped_iterator<decltype(std::begin(std::declval<typename std::add_lvalue_reference<A>::type>())),
-                                   decltype(std::begin(std::declval<typename std::add_lvalue_reference<Z>::type>()))...>;
-  using const_iterator = zipped_iterator<decltype(std::cbegin(std::declval<typename std::add_lvalue_reference<A>::type>())),
-                                         decltype(std::cbegin(std::declval<typename std::add_lvalue_reference<Z>::type>()))...>;
-  using reverse_iterator = zipped_iterator<decltype(std::rbegin(std::declval<typename std::add_lvalue_reference<A>::type>())),
-                                           decltype(std::rbegin(std::declval<typename std::add_lvalue_reference<Z>::type>()))...>;
-  using const_reverse_iterator = zipped_iterator<decltype(std::crbegin(std::declval<typename std::add_lvalue_reference<A>::type>())),
-                                                 decltype(std::crbegin(std::declval<typename std::add_lvalue_reference<Z>::type>()))...>;
+  using iterator = zipped_iterator<
+      decltype(std::begin(
+          std::declval<typename std::add_lvalue_reference<A>::type>())),
+      decltype(std::begin(
+          std::declval<typename std::add_lvalue_reference<Z>::type>()))...>;
+  using const_iterator = zipped_iterator<
+      decltype(std::cbegin(
+          std::declval<typename std::add_lvalue_reference<A>::type>())),
+      decltype(std::cbegin(
+          std::declval<typename std::add_lvalue_reference<Z>::type>()))...>;
+  using reverse_iterator = zipped_iterator<
+      decltype(std::rbegin(
+          std::declval<typename std::add_lvalue_reference<A>::type>())),
+      decltype(std::rbegin(
+          std::declval<typename std::add_lvalue_reference<Z>::type>()))...>;
+  using const_reverse_iterator = zipped_iterator<
+      decltype(std::crbegin(
+          std::declval<typename std::add_lvalue_reference<A>::type>())),
+      decltype(std::crbegin(
+          std::declval<typename std::add_lvalue_reference<Z>::type>()))...>;
 
   using value_type = typename iterator::value_type;
   using size_type = std::size_t;
   using difference_type = typename iterator::difference_type;
   using pointer = typename iterator::pointer;
+  using const_pointer = const pointer;
   using reference = typename iterator::reference;
+  using const_reference = const reference;
 
  public:
+  zipped_view() = delete;
+  zipped_view(const zipped_view&) = default;
+  zipped_view(zipped_view&&) = default;
   zipped_view(A& a, Z&... z) : p_(a, z...) {}
 
   iterator begin() { return begin_impl(Indices{}); }
@@ -134,7 +186,8 @@ class zipped_view {
   template <std::size_t... I>
   const_reverse_iterator crend_impl(std::index_sequence<I...>) const {
     const auto sz = size();
-    return const_reverse_iterator(std::next(std::crbegin(std::get<I>(p_)), sz)...);
+    return const_reverse_iterator(
+        std::next(std::crbegin(std::get<I>(p_)), sz)...);
   }
 
   template <std::size_t... I>
@@ -147,10 +200,15 @@ class zipped_view {
 template <class A, class... Z>
 constexpr zipped_view<typename std::remove_reference<A>::type,
                       typename std::remove_reference<Z>::type...>
-zip(A&& a, Z&&... z) {
+make_zipped_view(A&& a, Z&&... z) {
   using t = zipped_view<typename std::remove_reference<A>::type,
                         typename std::remove_reference<Z>::type...>;
   return t(std::forward<A>(a), std::forward<Z>(z)...);
+}
+
+template <class A, class... Z>
+constexpr auto zip(A&& a, Z&&... z) {
+  return make_zipped_view(std::forward<A>(a), std::forward<Z>(z)...);
 }
 
 }  // namespace miju
