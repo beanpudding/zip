@@ -53,7 +53,7 @@ int main() {
     int a[5]{1, 3, 5, 7, 9};
     int b[5]{2, 4, 6, 8, 10};
     std::cout << "array:";
-    for (const auto&& c : zip(a, b)) {
+    for (auto&& c : zip(a, b)) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ")";
     }
     std::cout << std::endl;
@@ -63,7 +63,7 @@ int main() {
     int a[5]{1, 3, 5, 7, 9};
     std::string b{"abcd"};
     std::cout << "array and std::string:";
-    for (const auto&& c : zip(a, b)) {
+    for (auto&& c : zip(a, b)) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ")";
     }
     std::cout << std::endl;
@@ -73,7 +73,7 @@ int main() {
     std::array<int, 5> a{1, 3, 5, 7, 9};
     auto il = {10, 20, 30};
     std::cout << "std::array and initializer_list: ";
-    for (const auto&& c : zip(a, il)) {
+    for (auto&& c : zip(a, il)) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ")";
     }
     std::cout << std::endl;
@@ -83,7 +83,7 @@ int main() {
   {
     std::array<int, 5> a{1, 3, 5, 7, 9};
     std::cout << "std::array and initializer_list: ";
-    for (const auto&& c : zip(a, {10, 20, 30})) {
+    for (auto&& c : zip(a, {10, 20, 30})) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ")";
     }
     std::cout << std::endl;
@@ -94,7 +94,7 @@ int main() {
     std::array<int, 5> a{1, 3, 5, 7, 9};
     std::array<int, 5> b{2, 4, 6, 8, 10};
     std::cout << "std::array: ";
-    for (const auto&& c : zip(a, b)) {
+    for (auto&& c : zip(a, b)) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ")";
     }
     std::cout << std::endl;
@@ -104,7 +104,7 @@ int main() {
     std::vector<int> a{1, 3, 5, 7, 9};
     std::vector<int> b{2, 4, 6, 8, 10};
     std::cout << "std::vector: ";
-    for (const auto&& c : zip(a, b)) {
+    for (auto&& c : zip(a, b)) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ")";
     }
     std::cout << std::endl;
@@ -114,7 +114,7 @@ int main() {
     std::vector<int> a{1, 3, 5, 7, 9};
     std::list<int> b{2, 4, 6, 8, 10};
     std::cout << "mix std::vector and std::list: ";
-    for (const auto&& c : zip(a, b)) {
+    for (auto&& c : zip(a, b)) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ")";
     }
     std::cout << std::endl;
@@ -124,7 +124,7 @@ int main() {
     std::array<int, 5> a{1, 3, 5, 7, 9};
     std::vector<int> b{2, 4, 6, 8, 10};
     std::cout << "mix std::array and std::vector: ";
-    for (const auto&& c : zip(a, b)) {
+    for (auto&& c : zip(a, b)) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ")";
     }
     std::cout << std::endl;
@@ -135,7 +135,7 @@ int main() {
     int b[]{2, 4, 6, 8, 10};
     std::cout << "array(diff size):";
     auto ab = zip(a, b);
-    for (const auto&& c : ab) {
+    for (auto&& c : ab) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ")";
     }
     std::cout << std::endl;
@@ -154,7 +154,7 @@ int main() {
     std::cout << (found != ab.end() ? " found" : " not found") << std::endl;
     int aa = 5, bb = 7;
     std::cout << "find(" << aa << ", " << bb << "):";
-    found = std::find_if(ab.begin(), ab.end(), [&aa, &bb](const auto& c) {
+    found = std::find_if(ab.begin(), ab.end(), [&aa, &bb](auto&& c) {
       return (std::get<0>(c) == aa) && (std::get<1>(c) == bb);
     });
     std::cout << (found == ab.end() ? " not found" : " found") << std::endl;
@@ -166,7 +166,7 @@ int main() {
     char c[]{'a', 'b', 'c'/*, 'd', 'e'*/};
     auto abc = zip(a, b, c);
     std::cout << "3 array:";
-    for (const auto&& c : abc) {
+    for (auto&& c : abc) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ","
                 << std::get<2>(c) << ")";
     }
@@ -176,7 +176,7 @@ int main() {
   {
     int a[]{1, 3, 5, 7, 9};
     std::cout << "1 array:";
-    for (const auto&& c : zip(a)) {
+    for (auto&& c : zip(a)) {
       std::cout << " (" << std::get<0>(c) << ")";
     }
     std::cout << std::endl;
@@ -187,9 +187,23 @@ int main() {
     int b[]{2, 4, 6, 8/*, 10*/};
     std::cout << "array(reverse):";
     auto ab = zip(a, b);
-    std::for_each(ab.rbegin(), ab.rend(), [](const auto&& c) {
+    std::for_each(ab.rbegin(), ab.rend(), [](auto&& c) {
       std::cout << " (" << std::get<0>(c) << "," << std::get<1>(c) << ")";
     });
+    std::cout << std::endl;
+  }
+
+  {
+    int a[]{1, 3, 5, 7, 9};
+    std::array<int, 5> b{2, 4, 6, 8, 10};
+    std::vector<char> c{'a', 'b', 'c' /*, 'd', 'e'*/};
+    std::map<int, int> d{{1, 1}, {2, 2}, {3, 3}};
+    std::cout << "nest:";
+    for (auto&& c : zip(zip(a, b), c, d)) {
+      std::cout << " (" << std::get<0>(std::get<0>(c)) << ","
+                << std::get<1>(std::get<0>(c)) << "," << std::get<1>(c) << ",{"
+                << std::get<2>(c).first << "," << std::get<2>(c).second << "})";
+    }
     std::cout << std::endl;
   }
 }
@@ -212,6 +226,7 @@ find(5, 7): not found
 3 array: (1,2,a) (3,4,b) (5,6,c)
 1 array: (1) (3) (5) (7) (9)
 array(reverse): (9,8) (7,6) (5,4) (3,2)
+nest: (1,2,a,{1,1}) (3,4,b,{2,2}) (5,6,c,{3,3})
 ```
 
 
