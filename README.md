@@ -230,5 +230,25 @@ nest: (1,2,a,{1,1}) (3,4,b,{2,2}) (5,6,c,{3,3})
 ```
 
 
+## CMake
+To add to a CMake project, the package must be included in the build:
+
+- As subdirectory:
+```cmake
+add_subdirectory(zip_iterables)
+```
+
+- With [CPM](https://github.com/cpm-cmake/CPM.cmake):
+```cmake
+CPMAddPackage("gh:beanpudding/zip_iterables#master")
+```
+
+And then depended on:
+
+```cmake
+target_link_libraries(<your-target-here> PRIVATE zip_iterables::zip_iterables)
+```
+
+
 ## License
 Open sourced under [MIT license](http://opensource.org/licenses/MIT), the terms of which can be read here - [LICENSE](./LICENSE).
